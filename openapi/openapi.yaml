@@ -1,0 +1,122 @@
+openapi: 3.1.0
+info:
+  title: Library Lending API
+  version: 1.0.0
+servers:
+  - url: /v1
+paths:
+  /healthz:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+  /auth/register:
+    post:
+      summary: Register user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 6 }
+      responses:
+        '200': { description: JWT token issued }
+        '409': { description: Email exists }
+  /auth/login:
+    post:
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        '200': { description: JWT token issued }
+        '401': { description: Invalid credentials }
+  /books:
+    get:
+      summary: Search books
+      parameters:
+        - in: query
+          name: title
+          schema: { type: string }
+        - in: query
+          name: author
+          schema: { type: string }
+        - in: query
+          name: genre
+          schema: { type: string }
+        - in: query
+          name: available
+          schema: { type: boolean }
+        - in: query
+          name: sort
+          schema: { type: string, enum: [title,-title,author,-author,genre,-genre] }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0 }
+      responses:
+        '200': { description: Book list }
+  /loans:
+    post:
+      summary: Create loan (idempotent)
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [book_id]
+              properties:
+                book_id: { type: integer }
+      responses:
+        '201': { description: Loan created }
+        '400': { description: Book unavailable / validation }
+  /loans/{id}/return:
+    patch:
+      summary: Return loan
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Loan returned }
+  /me/loans:
+    get:
+      summary: List current user's loans
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer }
+        - in: query
+          name: offset
+          schema: { type: integer }
+      responses:
+        '200': { description: Loan list }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []

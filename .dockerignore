@@ -1,0 +1,28 @@
+# Binaries
+library-api
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Build cache
+/build/
+/dist/
+
+# VCS
+.git
+.gitignore
+
+# Editors/IDE
+.vscode
+.idea
+
+# Logs
+*.log
+
+# Tests cache
+cover.out
+
+# OS files
+.DS_Store
+Thumbs.db
